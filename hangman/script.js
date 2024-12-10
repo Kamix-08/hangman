@@ -10,20 +10,26 @@ let word_list
     word_list = await fetch(word_base_url)
         .then(res => res.text())
         .then(res => res.split('\n'))
+
+    new_game() // sigma mindset
 })()
 
 const letters_left = []
 const letters_used = []
 let letters_left_count = 0
 
+let lives = 0
+
 function clear() {
-    img_container.innerHTML = ''
+    img_container.innerHTML = '<img src="./../img/00.png" alt="00"></img>'
     word_tag.textContent = ''
     letters_tag.textContent = ''
 
     letters_left.length = 0
     letters_used.length = 0
     letters_left_count = 0
+
+    lives = 10
 }
 
 function new_game() {
@@ -45,7 +51,7 @@ function new_game() {
 }
 
 function try_letter(letter) {
-    if(!letter.startsWith("Key") || letters_left_count == 0)
+    if(!letter.startsWith("Key") || letters_left_count == 0 || lives < 0)
         return false
 
     letter = letter[letter.length - 1].toLowerCase()
@@ -53,8 +59,15 @@ function try_letter(letter) {
         return false
 
     letters_used.push(letter)
+    letters_tag.textContent = letters_used.sort().join(' ')
+
     if(!letters_left.includes(letter)) {
-        // draw the hangman
+        let file_name = (10 - --lives).toString()
+        if(lives > 0)
+            file_name = "0" + file_name
+
+        img_container.innerHTML = `<img src="./../img/${file_name}.png" alt="${file_name}"></img>`
+
         return false
     }
 
@@ -67,12 +80,15 @@ function try_letter(letter) {
             letters_left[i] = '.'
             letters_left_count--
         }
+
     return true
 }
 
 addEventListener("keydown", e => {
-    if(try_letter(e.code))
-        console.log("yay!")
-    else
-        console.log("womp")
+    try_letter(e.code)
+
+    // if(lives < 0)
+    //     // lost
+    // else if(letters_left_count == 0)
+    //     // won
 })
