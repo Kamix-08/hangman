@@ -11,7 +11,7 @@ let word_list
         .then(res => res.text())
         .then(res => res.split('\n'))
 
-    new_game() // sigma mindset
+    new_game()
 })()
 
 const letters_left = []
@@ -19,6 +19,7 @@ const letters_used = []
 let letters_left_count = 0
 
 let lives = 0
+let ended = false
 
 function clear() {
     img_container.innerHTML = '<img src="./../img/00.png" alt="00"></img>'
@@ -42,10 +43,13 @@ function new_game() {
 
     const word = word_list[Math.floor(Math.random() * word_list.length)].trim()
 
-    word_tag.textContent = "_ ".repeat(word.length).slice(0, -1)
+    for(const letter of word) {
+        const span = document.createElement('span')
+        span.innerText = '_'
+        word_tag.appendChild(span)
 
-    for(const letter of word) 
         letters_left.push(letter)
+    }
 
     letters_left_count = letters_left.length
 }
@@ -71,15 +75,14 @@ function try_letter(letter) {
         return false
     }
 
-    for(let i=0; i<letters_left.length; i++) 
-        if(letters_left[i] == letter) {
-            const cur_str = [...word_tag.textContent]
-            cur_str[i*2] = letter
+    for(let i=0; i<letters_left.length; i++)  {
+        if(letters_left[i] != letter)
+            continue
 
-            word_tag.textContent = cur_str.join('')
-            letters_left[i] = '.'
-            letters_left_count--
-        }
+        word_tag.children[i].innerText = letter
+        letters_left[i] = '.'
+        letters_left_count--
+    }
 
     return true
 }
@@ -87,8 +90,25 @@ function try_letter(letter) {
 addEventListener("keydown", e => {
     try_letter(e.code)
 
-    // if(lives < 0)
-    //     // lost
-    // else if(letters_left_count == 0)
-    //     // won
+    if ((lives >= 0 && letters_left_count != 0) || ended)
+        return
+
+    ended = true
+
+    if (lives < 0) {
+        for (let i=0; i<letters_left.length; i++) {
+            if (letters_left[i] == '.')
+                continue
+
+            word_tag.children[i].classList.add('missed')
+            word_tag.children[i].innerText = letters_left[i]
+        }
+    }
+
+    else {
+        word_tag.classList.add('found')
+    }
+
+    document.querySelector('#end').classList.remove('hidden')
+    document.querySelector('#status').innerText = `You ${lives >= 0 ? 'won!' : 'lost...'}`
 })
